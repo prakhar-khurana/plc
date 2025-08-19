@@ -8,6 +8,7 @@ use crate::ast::Program;
 
 pub mod scl;
 pub mod plcopen;
+pub mod il;
 
 /// Parse a PLC source file into a [`Program`]. The file extension
 /// determines which frontend to use:
@@ -23,6 +24,7 @@ pub fn parse_file(path: &Path) -> Result<Program, String> {
     match ext.as_str() {
         "scl" | "st" | "sclsrc" => scl::parse_scl(path),
         "xml" => plcopen::parse_plcopen(path),
+        "il" | "awl"=> il::parse_il(path),
         other => Err(format!(
             "Unsupported file extension: '{}'. Expected .scl/.st or .xml",
             other

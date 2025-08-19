@@ -17,7 +17,7 @@ pub struct MemoryArea {
 }
 
 /// Example policy JSON embedded as a constant (not in comments).
-/// You can write this to a file or parse directly with `serde_json`.
+
 pub const EXAMPLE_POLICY_JSON: &str = r#"{
   "pairs": [
     ["Motor_Fwd", "Motor_Rev"],
