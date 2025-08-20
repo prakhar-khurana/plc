@@ -69,19 +69,17 @@ pub fn parse_scl_from_str(src: &str) -> Result<Program, String> {
             } else if starts_with_keyword(&line, "FUNCTION") {
                 FunctionKind::FC
             } else {
-                if name.to_uppercase().contains("OB100") {
-                    FunctionKind::OB100
-                } else if name.to_uppercase().contains("OB1") {
-                    FunctionKind::OB1
-                } else if name.to_uppercase().contains("OB86") {
-                    FunctionKind::OB86
-                } else if name.to_uppercase().contains("OB82") {
-                    FunctionKind::OB82
-                } else if name.to_uppercase().contains("OB121") {
-                    FunctionKind::OB121
-                } else {
-                    FunctionKind::OB
-                }
+                let up = name.to_ascii_uppercase();
+    			let ob_num = up.strip_prefix("OB").and_then(|s| s.parse::<u32>().ok());
+    			match ob_num {
+        			Some(121) => FunctionKind::OB121,
+        			Some(100) => FunctionKind::OB100,
+        			Some(86)  => FunctionKind::OB86,
+        			Some(82)  => FunctionKind::OB82,
+        			Some(1)   => FunctionKind::OB1,
+        			Some(_)   => FunctionKind::OB, // other OBs
+        			None      => FunctionKind::OB,
+    			}
             };
             current_func = Some(Function {
                 name,
