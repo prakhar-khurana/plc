@@ -1,3 +1,33 @@
-backend/pkg/
-backend/target/
-frontend/node_modules/
+# Rust build artifacts
+/target/
+/backend/target/
+/backend/pkg/
+
+# Node dependencies
+/node_modules/
+/frontend/node_modules/
+
+# Frontend build output
+/dist/
+/frontend/dist/
+/plc-frontend/dist/
+
+# Keep the wasm bindings for the frontend
+# (we WANT frontend/wasm/*.js and *.wasm in git)
+!frontend/wasm/
+!frontend/wasm/*.js
+!frontend/wasm/*.wasm
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor cruft
+*.swp
+.idea/
+.vscode/
