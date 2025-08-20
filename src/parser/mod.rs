@@ -31,3 +31,21 @@ pub fn parse_file(path: &Path) -> Result<Program, String> {
         )),
     }
 }
+
+pub fn parse_file_from_str(source_code: &str, file_name: &str) -> Result<Program, String> {
+    let ext = Path::new(file_name)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+
+    match ext.as_str() {
+        "scl" | "st" | "sclsrc" => scl::parse_scl_from_str(source_code),
+        "xml" => plcopen::parse_plcopen_from_str(source_code),
+        "il" | "awl" => il::parse_il_from_str(source_code),
+        other => Err(format!(
+            "Unsupported file extension: '{}'. Expected .scl/.st, .xml, or .il/.awl",
+            other
+        )),
+    }
+}

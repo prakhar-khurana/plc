@@ -5,7 +5,9 @@ use clap::Parser;
 
 // Import from the library crate (this crate's lib).
 use plc_secure_checker::parser::parse_file;
-use plc_secure_checker::rules::{load_policy, run_all, Policy};
+use plc_secure_checker::rules::{load_policy, run_all, run_all_for_wasm, Policy};
+
+
 
 /// plc_secure_checker — static analyzer for Siemens PLC sources (SCL/PLCOpen XML)
 #[derive(Parser, Debug)]
@@ -38,4 +40,7 @@ fn main() {
 
     // Run all rules and print results in the exact required format
     run_all(&program, &policy);
+    let all_results = run_all_for_wasm(&program, &policy);
+
+    dbg!(all_results);
 }

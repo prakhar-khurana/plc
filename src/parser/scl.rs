@@ -56,6 +56,13 @@ pub fn parse_scl_from_str(src: &str) -> Result<Program, String> {
             || starts_with_keyword(&line, "FUNCTION")
             || starts_with_keyword(&line, "ORGANIZATION_BLOCK")
         {
+             if let Some(mut f) = current_func.take() {
+                // This also correctly handles any unclosed IF statements from the previous block.
+                while let Some(mut body) = if_stack.pop() {
+                    f.statements.append(&mut body);
+                }
+                program.functions.push(f);
+            }
             let name = grab_second_token(&line).unwrap_or_else(|| "Unnamed".to_string());
             let kind = if starts_with_keyword(&line, "FUNCTION_BLOCK") {
                 FunctionKind::FB
@@ -280,8 +287,19 @@ fn looks_like_call(line: &str) -> bool {
 /// Heuristic expression parser: identify division to support Rule 4,
 /// variable refs, numeric literals, and simple binary ops.
 fn parse_expr_heuristic(text: &str, line: usize) -> Expression {
-    if let Some(pos) = find_top_level_char(text, '/') {
-        let (l, r) = text.split_at(pos);
+    let trimmed_text = text.trim();
+    let upper_text = trimmed_text.to_ascii_uppercase();
+
+    // **THE FIX**: Add checks for boolean literals first.
+    if upper_text == "TRUE" {
+        return Expression::BoolLiteral(true, line);
+    }
+    if upper_text == "FALSE" {
+        return Expression::BoolLiteral(false, line);
+    }
+
+    if let Some(pos) = find_top_level_char(trimmed_text, '/') {
+        let (l, r) = trimmed_text.split_at(pos);
         let r = &r[1..];
         return Expression::BinaryOp {
             op: BinOp::Div,
@@ -290,11 +308,13 @@ fn parse_expr_heuristic(text: &str, line: usize) -> Expression {
             line,
         };
     }
-    if text.chars().all(|c| c.is_ascii_digit()) {
-        return Expression::NumberLiteral(text.parse().unwrap_or(0), line);
+    if trimmed_text.chars().all(|c| c.is_ascii_digit()) {
+        return Expression::NumberLiteral(trimmed_text.parse().unwrap_or(0), line);
     }
-    Expression::VariableRef(text.trim().to_string())
+    
+    Expression::VariableRef(trimmed_text.to_string())
 }
+
 
 fn find_top_level_char(s: &str, ch: char) -> Option<usize> {
     let mut paren_depth: i32 = 0;

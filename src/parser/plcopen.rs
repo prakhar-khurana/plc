@@ -10,13 +10,20 @@ use quick_xml::Reader;
 
 use crate::ast::{Expression, Function, FunctionKind, Program, Statement, Variable};
 
+/// Parses a PLCOpen XML file from a given path.
+/// This is a wrapper for the command-line tool.
 pub fn parse_plcopen(path: &Path) -> Result<Program, String> {
-    let bytes = fs::read(path).map_err(|e| format!("read error: {e}"))?;
-    let mut reader = Reader::from_reader(bytes.as_slice());
+    let xml_content = fs::read_to_string(path).map_err(|e| format!("read error: {e}"))?;
+    parse_plcopen_from_str(&xml_content)
+}
+
+/// Parses a PLCOpen XML string into a Program.
+/// This is the core parser used by both the CLI and the Wasm module.
+pub fn parse_plcopen_from_str(src: &str) -> Result<Program, String> {
+    let mut reader = Reader::from_str(src);
     reader.config_mut().trim_text(true);
 
     let mut buf = Vec::new();
-
     let mut program = Program { functions: vec![] };
     let mut current_func: Option<Function> = None;
 
@@ -60,7 +67,7 @@ pub fn parse_plcopen(path: &Path) -> Result<Program, String> {
                         name: fname,
                         kind,
                         statements: vec![],
-                        line: 0,
+                        line: 0, // Line numbers are less precise in XML
                     });
                 } else if e.name().as_ref().eq_ignore_ascii_case(b"block") {
                     if let Some(f) = current_func.as_mut() {
@@ -90,18 +97,19 @@ pub fn parse_plcopen(path: &Path) -> Result<Program, String> {
                     }
                 }
             }
-            Ok(Event::End(_)) => {}
+            Ok(Event::End(e)) => {
+                if e.name().as_ref().eq_ignore_ascii_case(b"pou") {
+                    if let Some(f) = current_func.take() {
+                        program.functions.push(f);
+                    }
+                }
+            }
             Err(e) => {
                 return Err(format!("XML parse error: {e}"));
             }
             _ => {}
         }
-
         buf.clear();
-    }
-
-    if let Some(f) = current_func.take() {
-        program.functions.push(f);
     }
 
     Ok(program)
@@ -127,6 +135,8 @@ fn read_variable_assignment(
                 value_text = read_element_text(reader)?;
             }
             Ok(Event::End(_)) => {
+                // This end tag could be for <value> or <variable>
+                // We break after finding a value to handle nested structures correctly.
                 if value_text.is_some() {
                     break;
                 }

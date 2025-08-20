@@ -8,11 +8,15 @@ edition = "2021"
 # PLCOpen XML source files and report violations of a curated set of
 # security best practices. See the README for more details.
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 colored = "2.1"
 quick-xml = "0.36"
 regex = "1.10"
+wasm-bindgen = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
