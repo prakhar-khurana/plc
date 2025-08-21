@@ -66,6 +66,9 @@ const App: React.FC = () => {
       // Invoke the checker and parse the resulting JSON string.
       const rawResult = checkPlcCode(fileContent, policy || '', fileName);
       const parsed: AnalysisResult[] = JSON.parse(rawResult);
+      console.log("Raw JSON from Wasm:", rawResult); 
+  // --- PRINT HERE (2) ---
+      console.log("Parsed JavaScript Object:", parsed);
       setResults(parsed);
     } catch (err: any) {
       console.error(err);
@@ -90,8 +93,8 @@ const App: React.FC = () => {
           {loading ? 'Analyzing…' : 'Analyze Code'}
         </button>
         {error && <p className="mt-2 text-red-400">{error}</p>}
-        <Results results={results} />
-      </div>
+        <Results results={results} source={fileContent} />
+        </div>
     </div>
   );
 };

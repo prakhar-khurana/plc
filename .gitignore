@@ -1,11 +1,11 @@
 # Rust build artifacts
-/target/
-/backend/target/
-/backend/pkg/
+*/target/
+*/backend/target/
+*/backend/pkg/
 
 # Node dependencies
-/node_modules/
-/frontend/node_modules/
+*/node_modules/
+*/frontend/node_modules/
 
 # Frontend build output
 /dist/
